@@ -1,0 +1,32 @@
+.address-container {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .location-icon {
+    color: red;
+    font-size: 20px;
+  }
+  
+  .loading {
+    color: #007bff;
+    font-weight: bold;
+  }
+  
+  .error {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .address {
+    font-weight: bold;
+    color: #333;
+  }
+  

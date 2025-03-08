@@ -1,0 +1,48 @@
+{
+  "name": "reactexpress",
+  "version": "1.0.0",
+  "description": "Starter kit for creating React/Redux and Express apps",
+  "main": "server.js",
+  "scripts": {
+    "client-install": "cd client && npm install",
+    "start": "node --trace-deprecation server.js",
+    "server": "nodemon --trace-deprecation server.js",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
+    "client": "npm start --prefix client",
+    "init": "node setup/init.js && node setup/tables.js",
+    "seeder": "node setup/filler.js && node setup/tags.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "author": "Brad Traversy",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.5.0",
+    "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "concurrently": "^9.1.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-hbs": "^2.5.0",
+    "express-validator": "^7.2.1",
+    "faker": "^5.5.3",
+    "geolib": "^3.3.4",
+    "humanize-duration": "^3.32.1",
+    "jsonwebtoken": "^9.0.2",
+    "mssql": "^11.0.1",
+    "multer": "^1.4.4",
+    "mysql": "^2.18.1",
+    "nodemailer": "^6.10.0",
+    "password-hash": "^1.2.2",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
+    "redux-thunk": "^3.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "uuid": "^11.1.0",
+    "webpack": "^4.28.3"
+  }
+}

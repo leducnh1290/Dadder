@@ -21,11 +21,11 @@ Ngoài tính năng match, Dadder còn hỗ trợ **nhắn tin, gọi thoại và
 | Thành phần            | Công nghệ sử dụng          |
 |-----------------------|----------------------------|
 | **Backend**           | Node.js (Express.js)       |
-| **Frontend**          | React.js (Vite)            |
+| **Frontend**          | React.js                   |
 | **Cơ sở dữ liệu**     | MySQL                      |
 | **Realtime Chat**     | Socket.io                  |
 | **Gọi Video & Audio** | WebRTC                     |
-| **Authentication**    | JW                         |
+| **Authentication**    | JWT                        |
 
 ## **👨‍💻 Team phát triển**  
 

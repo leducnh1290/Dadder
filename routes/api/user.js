@@ -321,8 +321,14 @@ router.post('/forgotPassword', (request, result) => {
     if (!res.length)
       return result.json();
     if (err) throw err;
-    const content = mail.templateEmail(`Bonjour ${res[0].username},`, "Changer mot de passe", "Réinitialiser votre mot de passe ?", "Vous avez demandé à réinitialiser votre mot de passe. Veuillez cliquer sur le bouton ci-dessous. Si vous n'êtes pas à l'origine de cette demande, contactez immédiatement un webmestre.", `http://localhost:3000?action=forgot-password&id=${res[0].id}&code=${res[0].code}`);
-    let transporter = nodemailer.createTransport({
+    const content = mail.templateEmail(
+      `Chào bạn ${res[0].username} nè,`, 
+      "Đổi mật khẩu heng~", 
+      "Muốn reset mật khẩu hông nè?", 
+      "Bạn vừa yêu cầu reset mật khẩu nè. Bấm nút dưới đây lẹ đi!", 
+      `https://dating.leducanh.name.vn?action=forgot-password&id=${res[0].id}&code=${res[0].code}`
+  );
+  let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: 'leducanh1290@gmail.com',

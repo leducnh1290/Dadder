@@ -273,21 +273,81 @@
 
 /* Nút gọi */
 .chat__call-button {
-    width: 1.75rem;
-    height: 1.75rem;
-    margin: 0 auto;
-    background: url("../../assets/img/phone-call.svg") no-repeat center, #28a745;
-    background-size: 1rem, cover;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    background: none;
     border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.chat__call-button:hover {
-    background-color: #218838;
+.chat__call-button.active {
+    color: #ff4444;
+    animation: pulse 1.5s infinite;
 }
 
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.call-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    text-align: center;
+}
+
+.call-popup h3 {
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.call-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.accept-call, .reject-call {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.accept-call {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.reject-call {
+    background-color: #f44336;
+    color: white;
+}
+
+.accept-call:hover {
+    background-color: #45a049;
+}
+
+.reject-call:hover {
+    background-color: #da190b;
+}
 
 .chat__button:hover {
     background-color: #00bcd4;

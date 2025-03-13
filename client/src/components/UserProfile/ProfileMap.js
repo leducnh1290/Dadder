@@ -34,9 +34,9 @@ const AddressFetcher = ({ lat, lon }) => {
   return (
     <div className="address-container">
       {loading ? (
-        <div className="loading">⏳ Đang lấy địa chỉ...</div>
+        <div className="loading">Đang lấy địa chỉ...</div>
       ) : error ? (
-        <div className="error">❌ {error}</div>
+        <div className="error">{error}</div>
       ) : (
         <div className="address">
           {address}

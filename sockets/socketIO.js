@@ -1,66 +1,115 @@
-const mysql = require('mysql');
-const jwt_check = require('../utils/jwt_check');
-const notifs = require('../utils/notifs');
-
+const mysql = require("mysql");
+const onlineUsers = new Map();
 // Kết nối database
 let connection = mysql.createConnection({
-  host: 'localhost',
-  port: '3306',
-  user: 'root',
-  password: 'leducanh2004',
-  database: 'matcha'
+  host: "localhost",
+  port: "3306",
+  user: "root",
+  password: "leducanh2004",
+  database: "matcha",
 });
 
 connection.connect(function (err) {
   if (err) throw err;
 });
-const users = {}; // Danh sách người dùng đang online
 
 module.exports = (io) => {
-  io.sockets.on('connection', (socket) => {
+  io.sockets.on("connection", (socket) => {
     console.log(`🔵 Người dùng kết nối: ${socket.id}`);
-    socket.on("register", (userId) => {
-      users[userId] = socket.id;
-      console.log(`✅ User ${userId} online với socket ID: ${socket.id}`);
+     // Đăng ký người dùng
+  socket.on('register', (userId) => {
+    onlineUsers.set(userId, socket.id);
+    console.log(`User ${userId} registered with socket ${socket.id}`);
   });
     // Khi user tham gia phòng chat
-    socket.on('room', (room) => {
+    socket.on("room", (room) => {
       socket.join(room);
       console.log(`✅ User tham gia phòng: ${room}`);
     });
 
-
     // Gửi tin nhắn trong phòng
-    socket.on('send message', ({ room, messageData }) => {
-      io.sockets.in(room).emit('new message', messageData);
-      console.log(`💬 Tin nhắn mới trong phòng ${room}:`, messageData);
+    socket.on("send message", ({ room, messageData }) => {
+      io.sockets.in(room).emit("new message", messageData);
+      console.log(`💬 Tin nhắn mới trong phòng ${room}:, messageData`);
     });
-
-    // Xử lý sự kiện gọi điện
-    socket.on("startCall", ({ caller, receiver }) => {
-      console.log("📞 Gửi cuộc gọi từ", caller, "đến", receiver);
-      console.log("Danh sách users hiện tại:", users);
-  
-      const receiverSocketId = users[receiver];  // Kiểm tra socket ID của receiver
-  
-      if (receiverSocketId) {  
-          io.to(receiverSocketId).emit("incomingCall", { caller });
-          console.log(`📞 Gửi tín hiệu cuộc gọi đến ${receiver}`);
-      } else {
-          io.to(users[caller]).emit("callFailed", { message: "Người nhận không online!" });
-          console.log(`❌ Gọi thất bại: User ${receiver} không online.`);
-      }
+    // Xử lý yêu cầu gọi điện
+  socket.on('callRequest', ({ caller, receiver }) => {
+    const receiverSocketId = onlineUsers.get(receiver);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('incomingCall', { callerId: caller });
+      console.log(`Call request from ${caller} to ${receiver}`);
+    } else {
+      socket.emit('callRejected', { message: 'User is offline' });
+    }
   });
-  
 
-    // Khi user ngắt kết nối
-    socket.on("disconnect", () => {
-      // Xóa user khi họ rời đi
-      const userId = Object.keys(users).find((key) => users[key] === socket.id);
-      if (userId) {
-          delete users[userId];
-          console.log(`🔴 User ${userId} đã ngắt kết nối`);
+  // Xử lý chấp nhận cuộc gọi
+  socket.on('acceptCall', ({ caller, receiver }) => {
+    const callerSocketId = onlineUsers.get(caller);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit('callAccepted', { receiverId: receiver });
+      console.log(`Call accepted by ${receiver}`);
+    }
+  });
+
+  // Xử lý từ chối cuộc gọi
+  socket.on('rejectCall', ({ caller, receiver }) => {
+    const callerSocketId = onlineUsers.get(caller);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit('callRejected', { receiverId: receiver });
+      console.log(`Call rejected by ${receiver}`);
+    }
+  });
+
+  // Xử lý kết thúc cuộc gọi
+  socket.on('endCall', ({ caller, receiver }) => {
+    const callerSocketId = onlineUsers.get(caller);
+    const receiverSocketId = onlineUsers.get(receiver);
+    
+    if (callerSocketId) {
+      io.to(callerSocketId).emit('callEnded', { receiverId: receiver });
+    }
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('callEnded', { receiverId: caller });
+    }
+    console.log(`Call ended between ${caller} and ${receiver}`);
+  });
+  // Xử lý tín hiệu ICE candidate
+  socket.on('candidate', ({ targetUserId, candidate }) => {
+    const receiverSocketId = onlineUsers.get(targetUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('candidate', { candidate });
+      console.log(`ICE candidate sent to ${targetUserId}`);
+    }
+  });
+
+  // Xử lý tín hiệu SDP offer
+  socket.on('offer', ({ offer, targetUserId }) => {
+    const receiverSocketId = onlineUsers.get(targetUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('offer', { offer });
+      console.log(`SDP offer sent to ${targetUserId}`);
+    }
+  });
+
+  // Xử lý tín hiệu SDP answer  
+  socket.on('answer', ({ answer, targetUserId }) => {
+    const receiverSocketId = onlineUsers.get(targetUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('answer', { answer });
+      console.log(`SDP answer sent to ${targetUserId}`);
+    }
+  });
+
+  // Xử lý ngắt kết nối
+  socket.on('disconnect', () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        console.log(`User ${userId} disconnected`);
+        break;
       }
+    }
   });
   });
 };

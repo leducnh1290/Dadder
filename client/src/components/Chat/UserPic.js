@@ -10,6 +10,7 @@ import './chatpanel.css';
 class UserPic extends Component {
   state = {
     firstName: '...',
+    lastname: '...',
     profile_pic: ''
   };
 
@@ -30,7 +31,7 @@ class UserPic extends Component {
   };
 
   render() {
-    const {firstName, profile_pic} = this.state;
+    const {firstName,lastname, profile_pic} = this.state;
     const {notif, current} = this.props;
 
     return (
@@ -39,7 +40,7 @@ class UserPic extends Component {
         'current': current
       })} onClick={this.onGetMessages}>
         <div className="chat__user-pic" style={{backgroundImage: `url("${profile_pic}")`}}/>
-        <div className="chat__user-overlay">{firstName}</div>
+        <div className="chat__user-overlay">{firstName+lastname}</div>
       </div>
     );
   }

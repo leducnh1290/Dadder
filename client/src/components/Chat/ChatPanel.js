@@ -252,7 +252,6 @@ class ChatPanel extends Component {
                     className={`chat__call-button ${isInCall ? 'active' : ''}`}
                     onClick={isInCall ? this.handleEndCall : this.handleCall}
                   >
-                    {isInCall ? '📞' : '📞'}
                   </button>
                   <button type="submit" className="chat__button">
                     ➤

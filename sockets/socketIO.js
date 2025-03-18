@@ -1,17 +1,8 @@
-const mysql = require("mysql");
+
+const jwt_check = require('../utils/jwt_check');
 const onlineUsers = new Map();
 // Kết nối database
-let connection = mysql.createConnection({
-  host: "localhost",
-  port: "3306",
-  user: "root",
-  password: "leducanh2004",
-  database: "matcha",
-});
 
-connection.connect(function (err) {
-  if (err) throw err;
-});
 
 module.exports = (io) => {
   io.sockets.on("connection", (socket) => {

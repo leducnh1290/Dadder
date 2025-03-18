@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import io from "socket.io-client";
 import VideoCallPopup from "../VideoCallPopup";
 import UserPic from "./UserPic";
+import axios from "axios";
 import Messages from "./Messages";
 
 import {
@@ -12,7 +13,7 @@ import {
 } from "../../store/actions/chatActions";
 
 import "./chatpanel.css";
-import '../VideoCallPopUp.css';
+import "../VideoCallPopUp.css";
 
 // Sửa port kết nối socket
 const socket = io("http://localhost:5000");
@@ -21,11 +22,14 @@ class ChatPanel extends Component {
   state = {
     shown: false,
     message: "",
+    firstName: "...",
+    lastname: "...",
     isCallPopupOpen: false, // Popup chấp nhận/từ chối cuộc gọi
     isInCall: false, // Đang trong cuộc gọi
     callerId: null, // ID người gọi
     targetUserId: null, // ID người nhận
-    currentUserId: null // ID của mình
+    currentUserId: null, // ID của mình
+    enemy: { firstName: "Le", lastName: "Duc Anh", matchID: 1 },
   };
 
   componentDidMount() {
@@ -46,15 +50,32 @@ class ChatPanel extends Component {
     if (this.props.matches && this.props.matches !== prevProps.matches) {
       if (this.props.matches.length > 0) {
         this.setState({ currentUserId: this.props.matches[0].me });
-        
+
         // Đăng ký socket room cho mỗi match
-        this.props.matches.forEach(match => {
-          socket.emit("room", `r${Math.max(match.me, match.id)}-${Math.min(match.me, match.id)}`);
+        this.props.matches.forEach((match) => {
+          socket.emit(
+            "room",
+            `r${Math.max(match.me, match.id)}-${Math.min(match.me, match.id)}`
+          );
           socket.emit("register", match.me);
         });
       }
+      const matchID = this.props.matches[0].id; // Lấy ID của phần tử đầu tiên
+      axios
+        .get(`/api/profile/${matchID}`)
+        .then((res) => {
+          this.setState({
+            enemy: {
+              firstName: res.data.firstName,
+              lastName: res.data.lastName,
+              matchID: matchID,
+            },
+          });
+        })
+        .catch((err) => {
+          console.error("Lỗi khi lấy dữ liệu hồ sơ:", err);
+        });
     }
-
     // Cập nhật tin nhắn khi người chat hiện tại thay đổi
     if (this.props.current && this.props.current !== prevProps.current) {
       socket.off("newMessage");
@@ -71,27 +92,30 @@ class ChatPanel extends Component {
         this.setState({
           isCallPopupOpen: true,
           callerId: callerId,
-          targetUserId: this.state.currentUserId
+          targetUserId: this.state.currentUserId,
         });
-        console.log("caller id", callerId+" my id"+this.state.currentUserId);
+        console.log(
+          "caller id",
+          callerId + " my id" + this.state.currentUserId
+        );
       });
       // Khi cuộc gọi được chấp nhận
       socket.off("callAccepted");
       socket.on("callAccepted", () => {
-        this.setState({ 
+        this.setState({
           isCallPopupOpen: false,
-          isInCall: true 
+          isInCall: true,
         });
       });
 
       // Khi cuộc gọi bị từ chối
       socket.off("callRejected");
       socket.on("callRejected", ({ message }) => {
-        this.setState({ 
+        this.setState({
           isCallPopupOpen: false,
           isInCall: false,
           callerId: null,
-          targetUserId: null
+          targetUserId: null,
         });
         alert(message || "Cuộc gọi bị từ chối");
       });
@@ -99,11 +123,11 @@ class ChatPanel extends Component {
       // Khi cuộc gọi kết thúc
       socket.off("callEnded");
       socket.on("callEnded", () => {
-        this.setState({ 
+        this.setState({
           isCallPopupOpen: false,
           isInCall: false,
           callerId: null,
-          targetUserId: null
+          targetUserId: null,
         });
         alert("Cuộc gọi đã kết thúc");
       });
@@ -119,13 +143,13 @@ class ChatPanel extends Component {
 
     this.setState({
       callerId: this.state.currentUserId,
-      targetUserId: this.props.current
+      targetUserId: this.props.current,
     });
 
     // Gửi yêu cầu gọi
     socket.emit("callRequest", {
       caller: this.state.currentUserId,
-      receiver: this.props.current
+      receiver: this.props.current,
     });
   };
 
@@ -133,12 +157,12 @@ class ChatPanel extends Component {
   handleAcceptCall = () => {
     socket.emit("acceptCall", {
       caller: this.state.callerId,
-      receiver: this.state.currentUserId
+      receiver: this.state.currentUserId,
     });
 
-    this.setState({ 
+    this.setState({
       isCallPopupOpen: false,
-      isInCall: true 
+      isInCall: true,
     });
   };
 
@@ -146,14 +170,14 @@ class ChatPanel extends Component {
   handleRejectCall = () => {
     socket.emit("rejectCall", {
       caller: this.state.callerId,
-      receiver: this.state.currentUserId
+      receiver: this.state.currentUserId,
     });
 
-    this.setState({ 
+    this.setState({
       isCallPopupOpen: false,
       isInCall: false,
       callerId: null,
-      targetUserId: null
+      targetUserId: null,
     });
   };
 
@@ -161,14 +185,14 @@ class ChatPanel extends Component {
   handleEndCall = () => {
     socket.emit("endCall", {
       caller: this.state.callerId,
-      receiver: this.state.targetUserId
+      receiver: this.state.targetUserId,
     });
 
-    this.setState({ 
+    this.setState({
       isCallPopupOpen: false,
       isInCall: false,
       callerId: null,
-      targetUserId: null
+      targetUserId: null,
     });
   };
 
@@ -181,11 +205,14 @@ class ChatPanel extends Component {
     e.preventDefault();
     if (this.props.current && this.state.message !== "") {
       this.props.sendMessage(this.props.current, this.state.message);
-      
+
       if (this.props.matches && this.props.matches[0]) {
         socket.emit("send message", {
-          room: `r${Math.max(this.props.matches[0].me, this.props.current)}-${Math.min(this.props.matches[0].me, this.props.current)}`,
-          messageData: this.state.message
+          room: `r${Math.max(
+            this.props.matches[0].me,
+            this.props.current
+          )}-${Math.min(this.props.matches[0].me, this.props.current)}`,
+          messageData: this.state.message,
         });
       }
 
@@ -195,17 +222,21 @@ class ChatPanel extends Component {
 
   render() {
     const { matches } = this.props;
-    const { 
-      shown, 
-      isCallPopupOpen, 
-      isInCall, 
-      currentUserId, 
+    const {
+      shown,
+      isCallPopupOpen,
+      isInCall,
+      currentUserId,
       targetUserId,
-      callerId 
+      callerId,
     } = this.state;
-    
-    const styleChat = { height: shown ? "21rem" : "0" };
 
+    const styleChat = { height: shown ? "21rem" : "0" };
+    const { enemy } = this.state; // ✅ Lấy từ state
+    enemy.matchID =
+      matches && Array.isArray(matches) && matches.length > 0
+        ? matches[0].id // ✅ Lấy ID của phần tử đầu tiên
+        : null;
     return (
       <React.Fragment>
         <div id="chatpanel">
@@ -249,10 +280,9 @@ class ChatPanel extends Component {
                 <div className="chat__buttons">
                   <button
                     type="button"
-                    className={`chat__call-button ${isInCall ? 'active' : ''}`}
+                    className={`chat__call-button ${isInCall ? "active" : ""}`}
                     onClick={isInCall ? this.handleEndCall : this.handleCall}
-                  >
-                  </button>
+                  ></button>
                   <button type="submit" className="chat__button">
                     ➤
                   </button>
@@ -264,7 +294,10 @@ class ChatPanel extends Component {
           {/* Popup chấp nhận/từ chối cuộc gọi */}
           {isCallPopupOpen && !isInCall && (
             <div className="call-popup">
-              <h3>Cuộc gọi đến...</h3>
+              <h3>
+                {enemy.lastName} {enemy.firstName} đang gọi bạn đoá...
+              </h3>
+
               <div className="call-buttons">
                 <button onClick={this.handleAcceptCall} className="accept-call">
                   Chấp nhận
@@ -277,17 +310,15 @@ class ChatPanel extends Component {
           )}
 
           {/* Component video call */}
-          <VideoCallPopup 
+          <VideoCallPopup
             isOpen={isInCall}
             onClose={this.handleEndCall}
             userId={currentUserId}
-            targetUserId={currentUserId ===
-            callerId?targetUserId:callerId}
+            targetUserId={currentUserId === callerId ? targetUserId : callerId}
             initiateCall={callerId === this.state.currentUserId}
             socket={socket}
-           
+            enemy={this.state.enemy}
           />
-          
         </div>
       </React.Fragment>
     );

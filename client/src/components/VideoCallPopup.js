@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./VideoCallPopUp.css";
 
-const VideoCallPopup = ({ isOpen, onClose, targetUserId, initiateCall = false, socket }) => {
+const VideoCallPopup = ({ isOpen, onClose, targetUserId, initiateCall = false, socket,enemy }) => {
+    console.log("Enemy data:", enemy);
     const [localStream, setLocalStream] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -294,7 +295,10 @@ const VideoCallPopup = ({ isOpen, onClose, targetUserId, initiateCall = false, s
                         style={{ opacity: isConnected ? 1 : 0.5 }}
                     />
                     <div className="video-label">
-                        {isConnected ? "Người khác" : "Đang kết nối..."}
+                    {isConnected 
+        ? (enemy && enemy.firstName ? `${enemy.firstName} ${enemy.lastName}` : "Đang kết nối...")
+        : "Đang kết nối..."
+    }
                     </div>
                 </div>
             </div>

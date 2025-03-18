@@ -4,7 +4,7 @@ const router = express.Router();
 const mysql = require('mysql');
 const jwt_check = require('../../utils/jwt_check');
 
-//Connect to db
+// Connect to db
 let connection = mysql.createConnection({
   host: 'localhost',
   port: '3306',

@@ -171,8 +171,8 @@ class MyProfile extends Component {
                 <div className="profile__cp-title">
                   <h4>Nơi cư ngụ</h4>
                 </div>
-                <div className="profile__cp-content bio">
-                <ProfileMap lat={profile.latitude} lon={profile.longitude} />
+                <div className="profile__cp-content map">
+                <ProfileMap lat={profile.latitude} lon={profile.longitude} gender={profile.gender} name={profile.firstName} />
                 </div>
                 
                 

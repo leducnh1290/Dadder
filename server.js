@@ -5,7 +5,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 app.use(cors({
-  origin:  ['http://localhost:3000', 'https://dating.leducanh.name.vn'],// Đổi thành domain frontend của bạn
+  origin:  ['http://localhost:3000', 'https://dating.leducanh.name.vn','http://dating.leducanh.name.vn'],// Đổi thành domain frontend của bạn
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức được phép
   allowedHeaders: ['Content-Type', 'Authorization'], // Các header cho phép
   credentials: true // Nếu có sử dụng cookies

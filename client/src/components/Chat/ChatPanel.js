@@ -16,7 +16,7 @@ import "./chatpanel.css";
 import "../VideoCallPopUp.css";
 
 // Sửa port kết nối socket
-const socket = io("http://localhost:5000");
+const socket = io();
 
 class ChatPanel extends Component {
   state = {
@@ -60,6 +60,7 @@ class ChatPanel extends Component {
           socket.emit("register", match.me);
         });
       }
+      if (this.props.matches && this.props.matches.length > 0) {
       const matchID = this.props.matches[0].id; // Lấy ID của phần tử đầu tiên
       axios
         .get(`/api/profile/${matchID}`)
@@ -76,6 +77,7 @@ class ChatPanel extends Component {
           console.error("Lỗi khi lấy dữ liệu hồ sơ:", err);
         });
     }
+  }
     // Cập nhật tin nhắn khi người chat hiện tại thay đổi
     if (this.props.current && this.props.current !== prevProps.current) {
       socket.off("newMessage");

@@ -28,10 +28,11 @@ const AddressFetcher = ({ lat, lon, gender, name }) => {
           headers: { "User-Agent": "Mozilla/5.0" }, // Tránh bị chặn
         });
 
-        console.log("API Response:", response.data); // Debug dữ liệu từ API
-
         if (response.data && response.data.display_name) {
-          setAddress(response.data.display_name);
+          let address = response.data.display_name;
+          let postcode = response.data.address.postcode;
+          let filteredAddress = address.replace(new RegExp(`,? ${postcode}`, "g"), "");
+          setAddress(filteredAddress);
         } else {
           setError("Không tìm thấy địa chỉ.");
         }

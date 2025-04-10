@@ -2,8 +2,6 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
-import L from "leaflet";
-import pinkicon from "../../assets/img/pinklogo.svg";
 import "leaflet/dist/leaflet.css";
 import Select from "react-select";
 import classnames from "classnames";
@@ -197,7 +195,7 @@ class EditProfile extends Component {
         .catch((error) => {
           console.error("Có lỗi xảy ra khi gọi API:", error);
         });
-    }, 2000); 
+    }, 500); 
 
     // Cập nhật state với timer mới
     this.setState({ timer });

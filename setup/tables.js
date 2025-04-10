@@ -102,7 +102,41 @@ connection.connect((err) => {
     "CREATE TABLE IF NOT EXISTS interests(" +
     "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
     "user_id int not NULL, " +
-    "tag VARCHAR(24));";
+    "tag VARCHAR(24));"+
+    "CREATE TABLE IF NOT EXISTS roles (" +
+    "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+    "name VARCHAR(32) NOT NULL UNIQUE); " +
+
+    "CREATE TABLE IF NOT EXISTS user_roles (" +
+    "user_id INT NOT NULL, " +
+    "role_id INT NOT NULL, " +
+    "PRIMARY KEY (user_id, role_id), " +
+    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, " +
+    "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE);" +
+
+    "INSERT INTO roles (name) VALUES ('user'), ('admin');"+
+
+    "CREATE TABLE banned ("+
+    "id INT AUTO_INCREMENT PRIMARY KEY,"+
+    "user_id INT NOT NULL,"+
+    "reason TEXT,"+
+    "banned_at DATETIME DEFAULT CURRENT_TIMESTAMP,"+
+    "banned_by INT,"+
+    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,"+
+    "FOREIGN KEY (banned_by) REFERENCES users(id) ON DELETE SET NULL);"+
+
+
+    "CREATE TABLE prouser (" +
+    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+    "name VARCHAR(255) NOT NULL, " +
+    "email VARCHAR(255) NOT NULL, " +
+    "subscription_plan VARCHAR(100) NOT NULL, " +
+    "start_date DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+    "end_date DATETIME, " +
+    "status VARCHAR(50) DEFAULT 'active', " +
+    "payment_status VARCHAR(50) DEFAULT 'pending', " +
+    "actions VARCHAR(255)" +
+    ")";
   connection.query(sql, (err, result) => {
     if (err) throw err;
     console.log('Tables created: ' + result + '.');

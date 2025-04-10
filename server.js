@@ -15,6 +15,8 @@ app.use(bodyParser.json());
 app.use('/img', express.static(path.join(__dirname, 'img')));
 
 app.use('/api/user', require('./routes/api/user'));
+app.use('/api/admin', require('./routes/api/admin'));
+
 app.use('/api/like', require('./routes/api/like'));
 app.use('/api/block', require('./routes/api/block'));
 app.use('/api/interests', require('./routes/api/interests'));

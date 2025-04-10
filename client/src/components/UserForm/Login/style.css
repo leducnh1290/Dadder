@@ -69,4 +69,58 @@
   button:hover {
     background: #ffdd44;
   }
+  .login-divider {
+    display: flex;
+    align-items: center;
+ 
+    margin: 15px 0;
+  }
+  
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #ccc;
+  }
+  
+  .divider-text {
+    padding: 0 10px;
+    color: #777;
+    font-size: 29px;
+  }
+  .google-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    gap: 12px;
+  }
+  
+  .google-login:hover {
+    background: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+  }
+  
+  .google-login:active {
+    transform: translateY(0);
+  }
+  
+  .google-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .google-login-text {
+    color: #3c4043;
+    font-family: 'Roboto', sans-serif;
+  }
   

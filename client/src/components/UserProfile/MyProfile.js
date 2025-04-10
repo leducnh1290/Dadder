@@ -148,7 +148,7 @@ class MyProfile extends Component {
                   <h4>BIO</h4>
                 </div>
                 <div className="profile__cp-content bio">
-                  <p>{profile.bio ? profile.bio : `${profile.firstName} n'a pas écrit de bio.`}</p>
+                  <p>{profile.bio ? profile.bio : `${profile.firstName} chưa cập nhập bio`}</p>
                 </div>
                 <div className="profile__cp-title">
                   <h4>Sở thích</h4>

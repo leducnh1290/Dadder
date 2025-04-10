@@ -12,7 +12,7 @@ class UserSettings extends Component {
   };
 
   componentDidMount() {
-    document.title = 'Mes préférences';
+    document.title = 'Cài đặt tài khoản';
   }
 
   render() {

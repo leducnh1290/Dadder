@@ -46,18 +46,23 @@ class Soulmatcher extends Component {
 
               let sliderAge = document.getElementById('age');
               let sliderPopularity = document.getElementById('popularity');
-              sliderAge.noUiSlider.updateOptions({
-                range: {
-                  'min': [18],
-                  'max': [this.state.rangeAgeMax + 1]
-                }
-              });
-              sliderPopularity.noUiSlider.updateOptions({
-                range: {
-                  'min': [0],
-                  'max': [this.state.rangePopMax + 1]
-                }
-              });
+              if (sliderAge && sliderAge.noUiSlider&&sliderPopularity.noUiSlider) {
+                sliderAge.noUiSlider.updateOptions({
+                  range: {
+                    'min': [18],
+                    'max': [this.state.rangeAgeMax + 1]
+                  }
+                });
+                sliderPopularity.noUiSlider.updateOptions({
+                  range: {
+                    'min': [0],
+                    'max': [this.state.rangePopMax + 1]
+                  }
+                });
+              } else {
+                console.error('Không thể tìm thấy sliderAge hoặc noUiSlider chưa được khởi tạo');
+              }
+            
 
             }, 1);
           });

@@ -13,7 +13,7 @@ export const uploadImage = (image, userId) => dispatch => {
     dispatch({
       type: GET_ERRORS,
       payload: {
-        profile: 'Seules les images au format PNG ou JPEG sont acceptées'
+        profile: 'Bạn chỉ có thể upload ảnh dạng PNG hoặc JPEG'
       }
     });
     dispatch({
@@ -26,7 +26,7 @@ export const uploadImage = (image, userId) => dispatch => {
     dispatch({
       type: GET_ERRORS,
       payload: {
-        profile: 'Seules les images de taille inférieure à 5Mo sont acceptées'
+        profile: 'Kích thước ảnh không được lớn hơn 5Mb đâu :)'
       }
     });
     dispatch({
@@ -45,7 +45,7 @@ export const uploadImage = (image, userId) => dispatch => {
       dispatch({
         type: GET_ERRORS,
         payload: {
-          profile: 'L\'image ne semble pas être un vrai fichier d\'image'
+          profile: 'Có lỗi xảy ra khi tải ảnh lên, vui lòng thử lại sau'
         }
       });
       dispatch({

@@ -42,7 +42,7 @@ class Card extends Component {
               this.setState({
                 ...res.data,
                 rgb: rgb,
-                distance: (Math.round(this.props.distance / 100) / 10 + ' km').replace('.', ',')
+               distance: new Intl.NumberFormat('vi-VN').format(this.props.distance / 1000) + ' km'
               });
             }
           })

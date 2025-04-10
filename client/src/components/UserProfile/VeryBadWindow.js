@@ -48,7 +48,7 @@ class VeryBadWindow extends Component {
           <div className="vbw__popup">
             <div className="vbw__title-bar">
               <div className="vbw__close" onClick={this.closePopup} />
-              <h1>{isBlocked ? 'Débloquer ?' : 'Bloquer ?'}</h1>
+              <h1>{isBlocked ? 'Bỏ block ?' : 'Block ?'}</h1>
             </div>
             <div className="vbw__main">
               <img className="vbw__main-img" src={blockImg} alt="report or block" />

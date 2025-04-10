@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import UserForm from "../UserForm/UserForm";
-
+import MapContainerLeaflet from "./HomeMap";
 import triCouple from "../../assets/img/tri-couple.svg";
 import triMap from "../../assets/img/tri-map.svg";
 import triChat from "../../assets/img/tri-chat.svg";
@@ -58,6 +58,9 @@ class Home extends Component {
     </div>
   </div>
 </div>
+<div id="map">
+            <MapContainerLeaflet/>
+        </div>
       </React.Fragment>
     );
   }

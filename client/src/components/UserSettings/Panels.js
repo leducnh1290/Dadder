@@ -104,7 +104,7 @@ class Panels extends Component {
                 type="email"
                 name="email"
                 placeholder="Nhập email mới nha"
-                title="example@soulmatch.com"
+                title="example@dadder.com"
                 required
                 minLength="1"
                 maxLength="64"
@@ -125,7 +125,7 @@ class Panels extends Component {
                 maxLength="64"
                 value={password}
                 onChange={this.handleChange}/>
-              <button type="submit" className="purple delete">{sure ? 'Chắc chưa? ' : 'Xóa luôn '}</button>
+              <button type="submit" className="purple delete">{sure ? 'Chắc chắn xoá ? ' : 'Okey '}</button>
             </form>
           </React.Fragment>
         );

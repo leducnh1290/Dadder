@@ -5,8 +5,36 @@ const path = require('path');
 const fs = require('fs');
 const IMAGE_DIR = "D:\\WindowsMonitor\\Dadder\\client\\public\\photos\\demo";
 
-let cities = require('./cities');
-
+const cities = [
+  [16.047199, 108.219955], // Hải Châu, Đà Nẵng
+  [20.984068, 105.862511], // Hoàng Mai, Hà Nội
+  [21.027256, 105.832703], // Quốc Tử Giám, Hà Nội
+  [21.010559, 105.800362], // Thung Hóa, Hà Nội
+  [16.118069, 108.273956], // Thọ Quang, Đà Nẵng
+  [18.247768, 105.644531], // Hương Khê, Hà Tĩnh
+  [10.817141, 106.707954], // Thạnh Đa, TP.HCM
+  [10.787884, 106.698402], // Đa Kao, Quận 1, TP.HCM
+  [10.720010, 106.670395], // Bình Hưng, TP.HCM
+  [18.787203, 105.605202], // Hưng Trung, Nghệ An
+  [10.027254, 105.769806], // Ninh Kiều, Cần Thơ
+  [21.030653, 105.847130], // Hoàn Kiếm, Hà Nội
+  [21.038412, 105.780716], // Mai Dịch, Hà Nội
+  [10.863731, 106.779495], // Linh Trung, Thủ Đức, TP.HCM
+  [10.802029, 106.649307], // Tân Bình, TP.HCM
+  [10.815623, 106.780685], // Phước Long B, Quận 9, TP.HCM
+  [10.771423, 106.698471], // Chợ Bến Thành, Quận 1, TP.HCM
+  [10.731839, 106.702827], // Tân Phong, Quận 7, TP.HCM
+  [10.810583, 106.709145], // Bình Thạnh, TP.HCM
+  [21.002771, 105.815361], // KĐT Royal City, Hà Nội
+  [10.773599, 106.694420], // Bến Thành, TP.HCM
+  [22.356464, 103.873802], // Sa Pa, Lào Cai
+  [11.111134, 106.794243], // Tân Uyên, Bình Dương
+  [10.801913, 106.764748], // An Phú, Quận 2, TP.HCM
+  [10.723695, 106.668060], // Bình Hưng, TP.HCM
+  [10.745030, 106.697075], // Tân Hưng, TP.HCM
+  [21.027266, 105.855453], // Hoàn Kiếm, Hà Nội
+  [20.993776, 105.811417]  // Thanh Xuân, Hà Nội
+];
 
 let connection = mysql.createConnection({
   host: 'localhost',
@@ -143,7 +171,7 @@ function generateVietnameseName() {
     lastName: (middleName + " " + lastName).split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
   };
 }
-function fill_db(data, pos_array) {
+function fill_db(data) {
   return new Promise((resolve, reject) => {
     const userFake = generateVietnameseName();
     const firstName = userFake.firstName;
@@ -163,9 +191,9 @@ function fill_db(data, pos_array) {
     const pic3 = getRandomImageUrl();
     const pic4 = getRandomImageUrl();
     const pic5 = getRandomImageUrl();
-    const random_city_pos = Math.floor(Math.random() * pos_array.length);
-    const longitude = pos_array[random_city_pos][pos_array[random_city_pos].length - 1] + (Math.bool ? 0.02 : -0.02) * Math.random();
-    const latitude = pos_array[random_city_pos][pos_array[random_city_pos].length - 2] + (Math.bool ? 0.02 : -0.02) * Math.random();;
+    const randomCity = cities[Math.floor(Math.random() * cities.length)];
+    const latitude = randomCity[0] + (Math.random() > 0.5 ? 0.02 : -0.02) * Math.random();
+    const longitude = randomCity[1] + (Math.random() > 0.5 ? 0.02 : -0.02) * Math.random();
 
     axios.post('http://localhost:5000/api/user/register', {
       email,
@@ -207,16 +235,10 @@ function fill_db(data, pos_array) {
 connection.connect((err) => {
   if (err) throw err;
   let promises = [];
-  let position_array = [];
-  let cities_list = cities.cities;
-
-  cities_list = cities_list.split("\n");
-  for (let j = 0; j < cities_list.length; j++)
-    position_array[j] = cities_list[j].split("\t");
   axios.get(`https://randomuser.me/api?nat=us&results=1000`)
     .then(res => {
       for (let i = 0; i < 1000; i++) {
-        promises.push(fill_db(res.data.results[i], position_array));
+        promises.push(fill_db(res.data.results[i]));
       }
       Promise.all(promises)
         .then(() => {

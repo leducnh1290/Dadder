@@ -377,8 +377,9 @@
 
 .profile__cp-content.map {
     position: relative;
-    height: 12rem;
+    height: 20rem;
     overflow: hidden;
+    max-width: 700px;
     border-radius: 1rem;
     box-shadow: 0 0 16px -8px rgba(0, 0, 0, 0.3);
     filter: grayscale(30%);

@@ -1,0 +1,13 @@
+.info-window {
+    text-align: center;
+  }
+  
+  .iw__pic {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+  }
+  

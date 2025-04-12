@@ -1,3 +1,4 @@
+const { ro } = require('@faker-js/faker');
 let jwt = require('jsonwebtoken');
 let secret = 'Mortparequipe';
 
@@ -7,6 +8,7 @@ module.exports = {
       id: -1,
       email: -1,
       username: -1,
+      role: -1,
       iat: -1,
       exp: -1,
     };
@@ -17,6 +19,7 @@ module.exports = {
           id: decoded.id,
           email: decoded.email,
           username: decoded.username,
+          role: decoded.role,
           iat: decoded.iat,
           exp: decoded.exp
         }

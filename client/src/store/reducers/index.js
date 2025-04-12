@@ -8,6 +8,7 @@ import chatReducer from './chatReducer';
 import userReducer from './userReducer';
 import notificationReducer from './notificationReducer';
 import settingsReducer from './settingsReducer';
+import adminReducer from './adminReducer';
 
 export default combineReducers({
   profile: profileReducer,
@@ -18,5 +19,6 @@ export default combineReducers({
   chat: chatReducer,
   user: userReducer,
   notifications: notificationReducer,
-  settings: settingsReducer
+  settings: settingsReducer,
+  admin: adminReducer
 });

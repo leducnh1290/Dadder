@@ -16,13 +16,13 @@ export const getNotifs = () => dispatch => {
     .catch(err => {
       dispatch({
         type: GET_ERRORS,
-        payload: err.response ? err.response.data : 'Erreur notifications'
+        payload: err.response ? err.response.data : 'Error notifications'
       });
     });
 };
 
 export const newNotif = (notification) => dispatch => {
-  if (notification !== {}) {
+  if (Object.keys(notification).length > 0) {
     axios.post('/api/connection')
       .then(res => {})
       .catch(err => {});

@@ -9,7 +9,7 @@ import VerifyEmail from './VerifiyEmail/VerifyEmail';
 
 export class UserForm extends Component {
   state = {
-    step: 0
+    step: 1
   };
 
   componentWillMount() {

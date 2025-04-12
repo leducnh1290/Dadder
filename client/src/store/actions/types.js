@@ -23,3 +23,12 @@ export const GET_NOTIFS = 'GET_NOTIFS';
 export const NEW_NOTIF = 'NEW_NOTIF';
 // SETTINGS
 export const SET_RESPONSE = 'SET_RESPONSE';
+//ADMIN
+export const ADMIN_GET_STATS = 'ADMIN_GET_STATS';
+export const ADMIN_GET_USERS = 'ADMIN_GET_USERS';
+export const DELETE_USER = 'DELETE_USER';
+export const BAN_USER = 'BAN_USER';
+export const UNBAN_USER = 'UNBAN_USER';
+export const GET_PRO_USERS = 'GET_PRO_USERS';
+export const UPDATE_PRO_USER_STATUS = 'UPDATE_PRO_USER_STATUS';
+export const UPDATE_PRO_USER_PAYMENT = 'UPDATE_PRO_USER_PAYMENT';

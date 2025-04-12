@@ -21,6 +21,26 @@ let connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err
 });
+// API kiểm tra kết nối và trạng thái ban
+router.post('/band', (req, res) => {
+   const user = jwt_check.getUsersInfos(req.headers.authorization);
+    if (user.id === -1) {
+      return res.status(401).json({error: 'unauthorized access'});
+    }
+  const userId = user.id;  // ID người dùng từ token hoặc session
+
+  const query = 'SELECT * FROM banned WHERE user_id = ?';
+  connection.query(query, [userId], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Lỗi khi kiểm tra trạng thái ban' });
+
+    if (result.length > 0) {
+      const reason = result[0].reason;  // Lý do bị ban
+      return res.json({ isBanned: true, reason });
+    } else {
+      return res.json({ isBanned: false });
+    }
+  });
+});
 
 // PRE-REGISTER
 router.post('/preregister', (req, res) => {
@@ -210,7 +230,11 @@ router.post('/register', (req, res) => {
           "Cảm ơn bạn đã gia nhập hội Dadder! Để không bỏ lỡ những cú match đỉnh kout, bấm vào link bên dưới để xác nhận email nha!",
           `https://dating.leducanh.name.vn?action=verify-email&id=${id}&code=${code}`
       );
-      
+      const sqlSetRole = "INSERT INTO user_roles (user_id, role_id) VALUES (?, 1)";
+
+      connection.query(sqlSetRole, [id], err => {
+        if (err) throw err;
+      });
         const sql4 = "INSERT INTO verified(user_id, code, status)" +
           `VALUES (?, ?, false);`;
         //Send an email if everything is alright
@@ -237,7 +261,7 @@ router.post('/register', (req, res) => {
                     service: 'gmail',
                     auth: {
                       user: 'leducanh1290@gmail.com',
-                      pass: 'hvse hrww wuob gzog'
+                      pass: 'vaer qkhg ddpz ijgu'
                     }
                   });
                   let mailOptions = {
@@ -321,12 +345,18 @@ router.post('/forgotPassword', (request, result) => {
     if (!res.length)
       return result.json();
     if (err) throw err;
-    const content = mail.templateEmail(`Bonjour ${res[0].username},`, "Changer mot de passe", "Réinitialiser votre mot de passe ?", "Vous avez demandé à réinitialiser votre mot de passe. Veuillez cliquer sur le bouton ci-dessous. Si vous n'êtes pas à l'origine de cette demande, contactez immédiatement un webmestre.", `http://localhost:3000?action=forgot-password&id=${res[0].id}&code=${res[0].code}`);
-    let transporter = nodemailer.createTransport({
+    const content = mail.templateEmail(
+      `Chào bạn ${res[0].username} nè,`, 
+      "Đổi mật khẩu heng~", 
+      "Muốn reset mật khẩu hông nè?", 
+      "Bạn vừa yêu cầu reset mật khẩu nè. Bấm nút dưới đây lẹ đi!", 
+      `https://dating.leducanh.name.vn?action=forgot-password&id=${res[0].id}&code=${res[0].code}`
+  );
+  let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: 'leducanh1290@gmail.com',
-        pass: 'hvse hrww wuob gzog'
+        pass: 'vaer qkhg ddpz ijgu'
       }
     });
     let mailOptions = {
@@ -370,11 +400,15 @@ router.post('/login', (req, res) => {
         };
         error = true;
     }
-
-    //If both fields are full, keep going with the connection
     if (!error) {
         //Check if username matches a user
-        let sql = `SELECT u.username, u.password, u.id, u.email, v.status FROM users u INNER JOIN verified v ON u.id = v.user_id WHERE username = ? OR email = ?;`;
+        let sql = `SELECT u.username, u.password, u.id, u.email, v.status, r.name AS role
+FROM users u
+INNER JOIN verified v ON u.id = v.user_id
+LEFT JOIN user_roles ur ON u.id = ur.user_id
+LEFT JOIN roles r ON ur.role_id = r.id
+WHERE u.username = ? OR u.email = ?;
+`;
         connection.query(sql, [
           info.username,
           info.username
@@ -408,7 +442,8 @@ router.post('/login', (req, res) => {
         const payload = {
           id: result[0].id,
           email: result[0].email,
-          username: result[0].username
+          username: result[0].username,
+          role: result[0].role|| 'user'
         };
 
         const sql_pos = "UPDATE infos " +
@@ -443,76 +478,76 @@ router.post('/login', (req, res) => {
 });
 
 
-router.patch('/password', (req, res) => {
-  const user = jwt_check.getUsersInfos(req.headers.authorization);
-  if (user.id === -1) {
-    return res.status(401).json({error: 'unauthorized access'});
-  }
-  let res_err = {};
-  let error = false;
-
-  const request = {
-    old_pw: req.body.oldPassword,
-    new_pw: req.body.newPassword,
-    re_new: req.body.newConfirm,
-  };
-
-  if (typeof request.old_pw == 'undefined' || request.old_pw == '') {
-    return res.status(400).json({
-      outcome: "error",
-      message: "Yêu cầu mật khẩu cũ"
-    })
-  }
-  //Check if old pw is good
-  let sql = `SELECT password FROM users WHERE id = ?;`;
-  connection.query(sql, [user.id], (err, result) => {
-    if (err) throw err;
-    if (result.length === 0) {
-      return res.status(400).json({
-        outcome: "error",
-        message: "Mât khẩu không đúng"
-      });
+  router.patch('/password', (req, res) => {
+    const user = jwt_check.getUsersInfos(req.headers.authorization);
+    if (user.id === -1) {
+      return res.status(401).json({error: 'unauthorized access'});
     }
-    //Check if password is wrong
-    else if (!pw_hash.verify(request.old_pw, result[0].password)) {
-      return res.status(400).json({
-        outcome: "error",
-        message: "Mât khẩu không đúng"
-      });
-    }
-    if (error)
-      return res.status(400).json(res_err);
+    let res_err = {};
+    let error = false;
 
-    if (
-      typeof request.new_pw === "undefined" || 
-      !request.new_pw.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,64}$/)
-    ) {
+    const request = {
+      old_pw: req.body.oldPassword,
+      new_pw: req.body.newPassword,
+      re_new: req.body.newConfirm,
+    };
+
+    if (typeof request.old_pw == 'undefined' || request.old_pw == '') {
       return res.status(400).json({
         outcome: "error",
-        message: "Mật khẩu phải từ 8 đến 64 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 số."
-      });
-    }    
-    if (request.new_pw !== request.re_new) {
-      return res.status(400).json({
-        outcome: "error",
-        message: "Mật khẩu không khớp"
-      });
-    }
-      let hashed_pw = pw_hash.generate(request.new_pw);
-      sql = "UPDATE users " +
-        `SET password = ? WHERE id = ?;`;
-      connection.query(sql, [
-        hashed_pw,
-        user.id
-      ],(err) => {
-        if (err) throw err;
-        return res.json({
-          outcome: "success",
-          message: "Mật khẩu đã được thay đổi"
-        });
+        message: "Yêu cầu mật khẩu cũ"
       })
-  })
-});
+    }
+    //Check if old pw is good
+    let sql = `SELECT password FROM users WHERE id = ?;`;
+    connection.query(sql, [user.id], (err, result) => {
+      if (err) throw err;
+      if (result.length === 0) {
+        return res.status(400).json({
+          outcome: "error",
+          message: "Mât khẩu không đúng"
+        });
+      }
+      //Check if password is wrong
+      else if (!pw_hash.verify(request.old_pw, result[0].password)) {
+        return res.status(400).json({
+          outcome: "error",
+          message: "Mât khẩu không đúng"
+        });
+      }
+      if (error)
+        return res.status(400).json(res_err);
+
+      if (
+        typeof request.new_pw === "undefined" || 
+        !request.new_pw.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,64}$/)
+      ) {
+        return res.status(400).json({
+          outcome: "error",
+          message: "Mật khẩu phải từ 8 đến 64 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 số."
+        });
+      }    
+      if (request.new_pw !== request.re_new) {
+        return res.status(400).json({
+          outcome: "error",
+          message: "Mật khẩu không khớp"
+        });
+      }
+        let hashed_pw = pw_hash.generate(request.new_pw);
+        sql = "UPDATE users " +
+          `SET password = ? WHERE id = ?;`;
+        connection.query(sql, [
+          hashed_pw,
+          user.id
+        ],(err) => {
+          if (err) throw err;
+          return res.json({
+            outcome: "success",
+            message: "Mật khẩu đã được thay đổi"
+          });
+        })
+    })
+  });
 
 router.patch('/email', (req, res) => {
   const user = jwt_check.getUsersInfos(req.headers.authorization);

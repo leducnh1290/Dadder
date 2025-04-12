@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-
 import io from "socket.io-client";
-
+import VideoCallPopup from "../VideoCallPopup";
 import UserPic from "./UserPic";
+import axios from "axios";
 import Messages from "./Messages";
 
 import {
@@ -13,125 +13,259 @@ import {
 } from "../../store/actions/chatActions";
 
 import "./chatpanel.css";
+import "../VideoCallPopUp.css";
 
-const socket = io("http://localhost:5000");
+// Sửa port kết nối socket
+const socket = io();
 
 class ChatPanel extends Component {
   state = {
     shown: false,
     message: "",
+    firstName: "...",
+    lastname: "...",
+    isCallPopupOpen: false, // Popup chấp nhận/từ chối cuộc gọi
+    isInCall: false, // Đang trong cuộc gọi
+    callerId: null, // ID người gọi
+    targetUserId: null, // ID người nhận
+    currentUserId: null, // ID của mình
+    enemy: { firstName: "Le", lastName: "Duc Anh", matchID: 1 },
   };
 
   componentDidMount() {
     this.props.getMatches();
-
+    // Lấy ID người dùng hiện tại từ matches
+    if (this.props.matches && this.props.matches.length > 0) {
+      this.setState({ currentUserId: this.props.matches[0].me });
+    }
   }
 
   toggleChat = () => {
-    const { shown } = this.state;
-
-    this.setState({
-      shown: !shown,
-    });
+    this.setState({ shown: !this.state.shown });
     this.props.getMatches();
   };
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.current && nextProps.current !== this.props.current) {
-      socket.on("newMessage", () => {
-        setTimeout(() => {
-          this.props.getMessages(nextProps.current);
-        }, 50);
-      });
-      socket.on("incomingCall", ({ caller }) => {
-        alert(`📞 Nhận cuộc gọi từ user ${caller}`);
-         // Hiển thị UI chấp nhận/từ chối cuộc gọi ở đây
-     });
-    }
-    if (nextProps.matches && nextProps.matches !== this.props.matches) {
-      for (let i = 0; i < nextProps.matches.length; i++) {
-        socket.emit(
-          "room",
-          `r${Math.max(
-            nextProps.matches[i].me,
-            nextProps.matches[i].id
-          )}-${Math.min(nextProps.matches[i].me, nextProps.matches[i].id)}`
-        );
-        socket.emit("register", nextProps.matches[i].me);
+  componentDidUpdate(prevProps) {
+    // Cập nhật ID người dùng khi matches thay đổi
+    if (this.props.matches && this.props.matches !== prevProps.matches) {
+      if (this.props.matches.length > 0) {
+        this.setState({ currentUserId: this.props.matches[0].me });
+
+        // Đăng ký socket room cho mỗi match
+        this.props.matches.forEach((match) => {
+          socket.emit(
+            "room",
+            `r${Math.max(match.me, match.id)}-${Math.min(match.me, match.id)}`
+          );
+          socket.emit("register", match.me);
+        });
       }
+      if (this.props.matches && this.props.matches.length > 0) {
+      const matchID = this.props.matches[0].id; // Lấy ID của phần tử đầu tiên
+      axios
+        .get(`/api/profile/${matchID}`)
+        .then((res) => {
+          this.setState({
+            enemy: {
+              firstName: res.data.firstName,
+              lastName: res.data.lastName,
+              matchID: matchID,
+            },
+          });
+        })
+        .catch((err) => {
+          console.error("Lỗi khi lấy dữ liệu hồ sơ:", err);
+        });
+    }
+  }
+    // Cập nhật tin nhắn khi người chat hiện tại thay đổi
+    if (this.props.current && this.props.current !== prevProps.current) {
+      socket.off("newMessage");
+      socket.on("newMessage", () => {
+        this.props.getMessages(this.props.current);
+      });
+    }
+
+    // Thiết lập các socket listener cho cuộc gọi
+    if (!prevProps.matches && this.props.matches) {
+      // Khi có cuộc gọi đến
+      socket.off("incomingCall");
+      socket.on("incomingCall", ({ callerId }) => {
+        this.setState({
+          isCallPopupOpen: true,
+          callerId: callerId,
+          targetUserId: this.state.currentUserId,
+        });
+        console.log(
+          "caller id",
+          callerId + " my id" + this.state.currentUserId
+        );
+      });
+      // Khi cuộc gọi được chấp nhận
+      socket.off("callAccepted");
+      socket.on("callAccepted", () => {
+        this.setState({
+          isCallPopupOpen: false,
+          isInCall: true,
+        });
+      });
+
+      // Khi cuộc gọi bị từ chối
+      socket.off("callRejected");
+      socket.on("callRejected", ({ message }) => {
+        this.setState({
+          isCallPopupOpen: false,
+          isInCall: false,
+          callerId: null,
+          targetUserId: null,
+        });
+        alert(message || "Cuộc gọi bị từ chối");
+      });
+
+      // Khi cuộc gọi kết thúc
+      socket.off("callEnded");
+      socket.on("callEnded", () => {
+        this.setState({
+          isCallPopupOpen: false,
+          isInCall: false,
+          callerId: null,
+          targetUserId: null,
+        });
+        alert("Cuộc gọi đã kết thúc");
+      });
     }
   }
 
-  handleChange = (e) => {
+  // Xử lý khi bấm nút gọi
+  handleCall = () => {
+    if (!this.props.current) {
+      alert("Vui lòng chọn một người để gọi!");
+      return;
+    }
+
     this.setState({
-      [e.target.name]: e.target.value,
+      callerId: this.state.currentUserId,
+      targetUserId: this.props.current,
+    });
+
+    // Gửi yêu cầu gọi
+    socket.emit("callRequest", {
+      caller: this.state.currentUserId,
+      receiver: this.props.current,
     });
   };
 
+  // Xử lý chấp nhận cuộc gọi
+  handleAcceptCall = () => {
+    socket.emit("acceptCall", {
+      caller: this.state.callerId,
+      receiver: this.state.currentUserId,
+    });
+
+    this.setState({
+      isCallPopupOpen: false,
+      isInCall: true,
+    });
+  };
+
+  // Xử lý từ chối cuộc gọi
+  handleRejectCall = () => {
+    socket.emit("rejectCall", {
+      caller: this.state.callerId,
+      receiver: this.state.currentUserId,
+    });
+
+    this.setState({
+      isCallPopupOpen: false,
+      isInCall: false,
+      callerId: null,
+      targetUserId: null,
+    });
+  };
+
+  // Xử lý kết thúc cuộc gọi
+  handleEndCall = () => {
+    socket.emit("endCall", {
+      caller: this.state.callerId,
+      receiver: this.state.targetUserId,
+    });
+
+    this.setState({
+      isCallPopupOpen: false,
+      isInCall: false,
+      callerId: null,
+      targetUserId: null,
+    });
+  };
+
+  handleChange = (e) => {
+    this.setState({ [e.target.name]: e.target.value });
+  };
+
+  // Gửi tin nhắn
   onSendMessage = (e) => {
     e.preventDefault();
     if (this.props.current && this.state.message !== "") {
       this.props.sendMessage(this.props.current, this.state.message);
-      this.setState({
-        message: "",
-      });
-      if (this.props.matches && this.props.matches[0])
-        socket.emit(
-          "send message",
-          `r${Math.max(
+
+      if (this.props.matches && this.props.matches[0]) {
+        socket.emit("send message", {
+          room: `r${Math.max(
             this.props.matches[0].me,
             this.props.current
-          )}-${Math.min(this.props.matches[0].me, this.props.current)}`
-        );
-      const msgDiv = document.querySelector(".chat__messages");
-      setTimeout(() => {
-        msgDiv.scrollTop = msgDiv.scrollHeight;
-      }, 100);
+          )}-${Math.min(this.props.matches[0].me, this.props.current)}`,
+          messageData: this.state.message,
+        });
+      }
+
+      this.setState({ message: "" });
     }
   };
-  handleCall = () => {
-    if (this.props.current) {
-        console.log(`Gọi đến user ID: ${this.props.current}`);
-        alert(`Đang gọi đến user ID: ${this.props.current}...`);
-
-        socket.emit("startCall", {
-          caller:this.props.matches && this.props.matches.length > 0 
-          ? this.props.matches[0].me 
-          : null,
-            receiver: this.props.current,
-        });
-    } else {
-        alert("Vui lòng chọn một người để gọi!");
-    }
-};
 
   render() {
     const { matches } = this.props;
-    const styleChat = { height: this.state.shown ? "21rem" : "0" };
+    const {
+      shown,
+      isCallPopupOpen,
+      isInCall,
+      currentUserId,
+      targetUserId,
+      callerId,
+    } = this.state;
 
+    const styleChat = { height: shown ? "21rem" : "0" };
+    const { enemy } = this.state; // ✅ Lấy từ state
+    enemy.matchID =
+      matches && Array.isArray(matches) && matches.length > 0
+        ? matches[0].id // ✅ Lấy ID của phần tử đầu tiên
+        : null;
     return (
       <React.Fragment>
         <div id="chatpanel">
           <div className="chat__title-bar" onClick={this.toggleChat}>
             <div className="chat__title-text">Chat nhanh</div>
           </div>
+
           <div className="chat__interface" style={styleChat}>
             <div className="chat__users-bar">
-              {matches &&
-                Array.isArray(matches) &&
+              {matches && Array.isArray(matches) && matches.length > 0 ? (
                 matches.map((match) => (
                   <UserPic
                     key={match.id}
                     userId={match.id}
-                    notif={false}
+                    notif={true}
                     current={match.id === this.props.current}
                   />
-                ))}
-              <div className="chat__ub-no-users">
-                Hiện tại bạn chưa ghép nối với bất kỳ ai !
-              </div>
+                ))
+              ) : (
+                <div className="chat__ub-no-users">
+                  Hiện tại bạn chưa ghép nối với bất kỳ ai!
+                </div>
+              )}
             </div>
+
             <Messages />
+
             <form onSubmit={this.onSendMessage}>
               <div className="chat__input-bar">
                 <div className="chat__input">
@@ -148,16 +282,45 @@ class ChatPanel extends Component {
                 <div className="chat__buttons">
                   <button
                     type="button"
-                    className="chat__call-button"
-                    onClick={this.handleCall}
-                  >
-                  </button>
+                    className={`chat__call-button ${isInCall ? "active" : ""}`}
+                    onClick={isInCall ? this.handleEndCall : this.handleCall}
+                  ></button>
                   <button type="submit" className="chat__button">
+                    ➤
                   </button>
                 </div>
               </div>
             </form>
           </div>
+
+          {/* Popup chấp nhận/từ chối cuộc gọi */}
+          {isCallPopupOpen && !isInCall && (
+            <div className="call-popup">
+              <h3>
+                {enemy.lastName} {enemy.firstName} đang gọi bạn đoá...
+              </h3>
+
+              <div className="call-buttons">
+                <button onClick={this.handleAcceptCall} className="accept-call">
+                  Chấp nhận
+                </button>
+                <button onClick={this.handleRejectCall} className="reject-call">
+                  Từ chối
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Component video call */}
+          <VideoCallPopup
+            isOpen={isInCall}
+            onClose={this.handleEndCall}
+            userId={currentUserId}
+            targetUserId={currentUserId === callerId ? targetUserId : callerId}
+            initiateCall={callerId === this.state.currentUserId}
+            socket={socket}
+            enemy={this.state.enemy}
+          />
         </div>
       </React.Fragment>
     );

@@ -43,7 +43,7 @@ export class LoginForm extends Component {
       },
       () => {
         axios
-          .get("http://ip-api.com/json/")
+          .get("https://ip-api.com/json/")
           .then((res) => {
             this.props.loginUser({
               ...userData,
